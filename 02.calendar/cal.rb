@@ -21,11 +21,11 @@ def show_cal(year, month)
   month_first_day_of_week = Date.new(year, month, 1).wday
 
   # 日曜始まり以外の為に空白数を求める
-  spaces = ""
-  month_first_day_of_week.times { spaces += "   " }
+  blanks = ""
+  month_first_day_of_week.times { blanks += "   " }
 
   # 空白を出力
-  print spaces
+  print blanks
 
   # 改行用カウンタ
   return_counter = month_first_day_of_week
