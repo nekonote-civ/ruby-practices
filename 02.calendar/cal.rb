@@ -4,7 +4,7 @@ require "date"
 require "optparse"
 
 # 指定された年月のカレンダーを出力する
-def show_cal(year, month)
+def show_cal(year, month, today)
 
   # 現在の年月を出力
   puts sprintf("%7d月 %d", month, year)
@@ -34,8 +34,13 @@ def show_cal(year, month)
   month_first_day.upto(month_last_day) { |x|
 
     # 日付を出力
-    print sprintf("%2d", x)
-
+    # 本日日付の場合は色を反転する
+    if Date.new(year, month, x) === today
+      print sprintf("\e[30m\e[47m%2d\e[0m", x)
+    else
+      print sprintf("%2d", x)
+    end
+    
     # 土曜日の場合は改行してカウンタを初期化
     if return_counter >= 6
       print "\n"
@@ -96,4 +101,4 @@ else
 end
 
 # カレンダー出力
-show_cal(year, month)
+show_cal(year, month, today)
