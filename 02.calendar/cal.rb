@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require "date"
 require "optparse"
 
@@ -93,5 +95,5 @@ else
   month = today.month.to_i
 end
 
-# カレンダー表示
+# カレンダー出力
 show_cal(year, month)
