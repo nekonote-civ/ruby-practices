@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 1.upto(20) { |num|
   if num % 3 == 0 && num % 5 == 0
     puts "FizzBuzz"
