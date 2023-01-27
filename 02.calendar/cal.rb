@@ -1,38 +1,32 @@
 require "date"
+require "optparse"
 
-# 引数が指定されていない場合
-if ARGV.size == 0
+# 指定された年月のカレンダーを出力する
+def show_cal(year, month)
 
-  # 本日を取得(format: yyyy-m-d)
-  today = Date.today
-
-  # 現在の年月を取得
-  year = today.year
-  month = today.month
-
-  # まずは現在の年月を表示する
+  # 現在の年月を出力
   puts sprintf("%7d月 %d", month, year)
 
   # 曜日を出力
   puts "日 月 火 水 木 金 土"
 
-  # 今月の最初 ~ 最後の日を求める
+  # 今月の最初と最後の日を求める
   month_first_day = 1
   month_last_day = Date.new(year, month, -1).day
 
   # wday(0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土)
-  # 今月の1日の曜日
-  this_month_first_day_of_week = Date.new(year, month, 1).wday
+  # 今月の1日の曜日を求める
+  month_first_day_of_week = Date.new(year, month, 1).wday
 
-  # 日曜始まり以外の為に空白数を計算
+  # 日曜始まり以外の為に空白数を求める
   spaces = ""
-  this_month_first_day_of_week.times { spaces += "   " }
+  month_first_day_of_week.times { spaces += "   " }
 
   # 空白を出力
   print spaces
 
-  # 改行用カウンタ(初期値は今月の1日の曜日)
-  return_counter = this_month_first_day_of_week
+  # 改行用カウンタ
+  return_counter = month_first_day_of_week
 
   # 今月の日付を順番に出力
   month_first_day.upto(month_last_day) { |x|
@@ -51,3 +45,53 @@ if ARGV.size == 0
     end
   }
 end
+
+# コマンドラインから受け取った引数の判定
+opt = OptionParser.new
+
+params = {}
+opt.on('-y') { |v| params[:y] = v }
+opt.on('-m') { |v| params[:m] = v }
+
+# 不正な引数の例外処理
+begin
+  opt.parse(ARGV)
+rescue OptionParser::InvalidOption => e
+  puts "#{e.message}"
+  puts "引数には [-y] [-m] のいずれかを指定してください。"
+  exit
+end
+
+# 本日日付を取得(format: yyyy-m-d)
+today = Date.today
+
+# -y と -m が設定されている場合、順不同でも正しい変数へ設定出来るようにする
+if params[:y] && params[:m]
+  opt1 = ARGV[0]
+
+  if opt1 == "-y"
+    year = ARGV[1].to_i
+    month = ARGV[3].to_i
+  else
+    year = ARGV[3].to_i
+    month = ARGV[1].to_i
+  end
+# -y だけのパターン
+elsif params[:y]
+  # 年月を設定
+  year = ARGV[1].to_i
+  month = today.month.to_i
+# -m だけのパターン
+elsif params[:m]
+  # 年月を設定
+  year = today.year.to_i
+  month = ARGV[1].to_i
+# 引数なし
+else
+  # 年月を設定
+  year = today.year.to_i
+  month = today.month.to_i
+end
+
+# カレンダー表示
+show_cal(year, month)
