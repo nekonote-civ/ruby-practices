@@ -12,14 +12,12 @@ def show_cal(year, month, today)
   # 曜日を出力
   puts "日 月 火 水 木 金 土"
 
+  # 月初の空白を出力
+  blanks = ""
+  Date.new(year, month, 1).wday.times { blanks += "   " } 
+  print blanks
+
   (Date.new(year, month, 1)..Date.new(year, month, -1)).each do |day|
-    
-    # 日曜始まり以外の為に空白数を求める
-    if day.day == 1
-      blanks = ""
-      day.wday.times { blanks += "   " } 
-      print blanks
-    end
 
     # 日付を出力
     # 本日日付の場合は色を反転する
