@@ -12,45 +12,22 @@ def show_cal(year, month, today)
   # 曜日を出力
   puts "日 月 火 水 木 金 土"
 
-  # 今月の最初と最後の日を求める
-  month_first_day = 1
-  month_last_day = Date.new(year, month, -1).day
-
-  # wday(0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土)
-  # 今月の1日の曜日を求める
-  month_first_day_of_week = Date.new(year, month, 1).wday
-
-  # 日曜始まり以外の為に空白数を求める
-  blanks = ""
-  month_first_day_of_week.times { blanks += "   " }
-
-  # 空白を出力
-  print blanks
-
-  # 改行用カウンタ
-  return_counter = month_first_day_of_week
-
-  # 今月の日付を順番に出力
-  month_first_day.upto(month_last_day) { |x|
+  (Date.new(year, month, 1)..Date.new(year, month, -1)).each do |day|
+    
+    # 日曜始まり以外の為に空白数を求める
+    if day.day == 1
+      blanks = ""
+      day.wday.times { blanks += "   " } 
+      print blanks
+    end
 
     # 日付を出力
     # 本日日付の場合は色を反転する
-    if Date.new(year, month, x) === today
-      print sprintf("\e[30m\e[47m%2d\e[0m", x)
-    else
-      print sprintf("%2d", x)
-    end
+    print day === today ? sprintf("\e[30m\e[47m%2d\e[0m", day.day) : sprintf("%2d", day.day)
     
-    # 土曜日の場合は改行してカウンタを初期化
-    if return_counter >= 6
-      print "\n"
-      return_counter = 0
-    else
-      # 空白を出力してカウンタを更新
-      print " "
-      return_counter += 1
-    end
-  }
+    # 土曜日のみ改行する
+    print day.saturday? ? "\n" : " "
+  end
 end
 
 # コマンドラインから受け取った引数の判定
