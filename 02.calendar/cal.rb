@@ -32,17 +32,9 @@ end
 opt = OptionParser.new
 
 params = {}
-opt.on('-y') { |v| params[:y] = v }
-opt.on('-m') { |v| params[:m] = v }
-
-# 不正な引数の例外処理
-begin
-  opt.parse(ARGV)
-rescue OptionParser::InvalidOption => e
-  puts "#{e.message}"
-  puts "引数には [-y] [-m] のいずれかを指定してください。"
-  exit
-end
+opt.on('-y MANDATORY') { |v| params[:y] = v }
+opt.on('-m MANDATORY') { |v| params[:m] = v }
+opt.parse(ARGV)
 
 # 本日日付を取得(format: yyyy-m-d)
 today = Date.today
