@@ -26,6 +26,8 @@ def show_cal(year, month, today)
     # 土曜日のみ改行する
     print day.saturday? ? "\n" : " "
   end
+
+  print "\n"
 end
 
 # コマンドラインから受け取った引数の判定
