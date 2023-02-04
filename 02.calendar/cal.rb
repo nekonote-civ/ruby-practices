@@ -13,9 +13,8 @@ def show_cal(year, month, today)
   puts "日 月 火 水 木 金 土"
 
   # 月初の空白を出力
-  blanks = ""
   first_day_of_month = Date.new(year, month, 1)
-  first_day_of_month.wday.times { blanks += "   " } 
+  blanks = "   " * first_day_of_month.wday
   print blanks
 
   (first_day_of_month..Date.new(year, month, -1)).each do |day|
