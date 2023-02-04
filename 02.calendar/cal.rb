@@ -27,7 +27,8 @@ def show_cal(year, month, today)
     print day.saturday? ? "\n" : " "
   end
 
-  print "\n"
+  # 最後は改行を出力
+  puts
 end
 
 # コマンドラインから受け取った引数の判定
