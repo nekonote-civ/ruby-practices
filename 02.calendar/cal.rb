@@ -39,33 +39,9 @@ opt.parse(ARGV)
 # 本日日付を取得(format: yyyy-m-d)
 today = Date.today
 
-# -y と -m が設定されている場合、順不同でも正しい変数へ設定出来るようにする
-if params[:y] && params[:m]
-  opt1 = ARGV[0]
-
-  if opt1 == "-y"
-    year = ARGV[1].to_i
-    month = ARGV[3].to_i
-  else
-    year = ARGV[3].to_i
-    month = ARGV[1].to_i
-  end
-# -y だけのパターン
-elsif params[:y]
-  # 年月を設定
-  year = ARGV[1].to_i
-  month = today.month.to_i
-# -m だけのパターン
-elsif params[:m]
-  # 年月を設定
-  year = today.year.to_i
-  month = ARGV[1].to_i
-# 引数なし
-else
-  # 年月を設定
-  year = today.year.to_i
-  month = today.month.to_i
-end
+# コマンドライン引数を元に年月を指定
+year = params[:y] ? params[:y].to_i : today.year.to_i
+month = params[:m] ? params[:m].to_i : today.month.to_i
 
 # カレンダー出力
 show_cal(year, month, today)
