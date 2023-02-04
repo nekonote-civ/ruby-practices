@@ -21,7 +21,7 @@ def show_cal(year, month, today)
 
     # 日付を出力
     # 本日日付の場合は色を反転する
-    print day === today ? sprintf("\e[30m\e[47m%2d\e[0m", day.day) : sprintf("%2d", day.day)
+    print day == today ? sprintf("\e[30m\e[47m%2d\e[0m", day.day) : sprintf("%2d", day.day)
     
     # 土曜日のみ改行する
     print day.saturday? ? "\n" : " "
