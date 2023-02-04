@@ -14,10 +14,11 @@ def show_cal(year, month, today)
 
   # 月初の空白を出力
   blanks = ""
-  Date.new(year, month, 1).wday.times { blanks += "   " } 
+  first_day_of_month = Date.new(year, month, 1)
+  first_day_of_month.wday.times { blanks += "   " } 
   print blanks
 
-  (Date.new(year, month, 1)..Date.new(year, month, -1)).each do |day|
+  (first_day_of_month..Date.new(year, month, -1)).each do |day|
 
     # 日付を出力
     # 本日日付の場合は色を反転する
