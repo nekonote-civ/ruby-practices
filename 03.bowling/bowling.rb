@@ -29,11 +29,7 @@ argv_splits = argv.split(',')
 
 # スコアを数値化
 scores = argv_splits.map do |score|
-  if score == 'X'
-    MAX_POINT
-  else
-    score.to_i
-  end
+  score == 'X' ? MAX_POINT : score.to_i
 end
 
 point     = 0 # スコアの合計値
