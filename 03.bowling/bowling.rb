@@ -32,13 +32,11 @@ scores = argv_splits.map do |score|
   score == 'X' ? MAX_POINT : score.to_i
 end
 
-point     = 0 # スコアの合計値
-cursor    = 0 # 配列内の現在地
-now_frame = 0 # 現在のフレーム数
+point = 0 # スコアの合計値
+cursor = 0 # 配列内の現在地
 
-while now_frame <= MAX_FRAMES - 1
-
-  if last_frame?(now_frame)
+MAX_FRAMES.times do |frame|
+  if last_frame?(frame)
     point += scores.slice(cursor, scores.size - cursor).sum
     break
   end
@@ -53,8 +51,6 @@ while now_frame <= MAX_FRAMES - 1
     point += (scores[cursor] + scores[cursor + 1])
     cursor += 2 # カーソル位置更新
   end
-
-  now_frame += 1
 end
 
 puts point
