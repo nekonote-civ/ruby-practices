@@ -27,6 +27,8 @@ end
 def search_files
   argv = ARGV[0]
   file_name = '*'
+  folder_name = nil
+
   if argv
     if FileTest.directory?(argv)
       folder_name = argv
