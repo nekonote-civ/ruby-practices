@@ -26,18 +26,17 @@ end
 
 def search_files
   argv = ARGV[0]
+  file_name = '*'
   if argv
     if FileTest.directory?(argv)
-      Dir.glob('*', base: argv)
+      folder_name = argv
     else
       argv_array = argv.split('/')
       file_name = argv_array.pop
       folder_name = argv_array.join('/')
-      Dir.glob(file_name, base: folder_name)
     end
-  else
-    Dir.glob('*')
   end
+  Dir.glob(file_name, base: folder_name)
 end
 
 def main
