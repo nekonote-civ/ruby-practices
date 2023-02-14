@@ -45,7 +45,8 @@ def main
   files = search_files
   return if files.empty?
 
-  max_row = (files.length % NUMBER_OF_COLUMNS).zero? ? files.length / NUMBER_OF_COLUMNS : files.length / NUMBER_OF_COLUMNS + 1
+  row_count = files.length / NUMBER_OF_COLUMNS
+  max_row = (files.length % NUMBER_OF_COLUMNS).zero? ? row_count : row_count + 1
   file_names_list = files.each_slice(max_row).to_a
 
   file_names_hash = file_names_list.map do |file_names|
