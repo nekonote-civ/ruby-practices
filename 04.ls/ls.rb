@@ -16,7 +16,7 @@ def display_length(text)
 end
 
 def max_file_name_length(file_names)
-  file_names.each.map { |file_name| display_length(file_name) }.max
+  file_names.map { |file_name| display_length(file_name) }.max
 end
 
 def print_format_file_name(file_names_hash)
@@ -49,7 +49,7 @@ def main
 
   file_names_hash = file_names_list.map do |file_names|
     max_length = max_file_name_length(file_names)
-    file_names.each.map do |name|
+    file_names.map do |name|
       length = display_length(name)
       { name:, length:, max_length: }
     end
