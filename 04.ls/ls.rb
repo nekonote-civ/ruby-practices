@@ -2,6 +2,8 @@
 
 # frozen_string_literal: true
 
+require 'optparse'
+
 NUMBER_OF_COLUMNS = 3
 SINGLE_BYTE_CHAR_DISPLAY_LENGTH = 1
 MULTI_BYTE_CHAR_DISPLAY_LENGTH = 2
@@ -25,11 +27,13 @@ def print_format_file_name(file_names_hash)
 end
 
 def search_files
-  argv = ARGV[0]
   file_name = '*'
   folder_name = nil
+  params = option_params
 
-  if argv
+  # コマンドライン引数がオプションのみ以外の場合はファイル or ディレクトリの指定を行う
+  if params.length != ARGV.length && !ARGV.empty?
+    argv = params.empty? ? ARGV[0] : ARGV[-1]
     if FileTest.directory?(argv)
       folder_name = argv
     else
@@ -38,7 +42,18 @@ def search_files
       folder_name = argv_array.join('/')
     end
   end
-  Dir.glob(file_name, base: folder_name)
+
+  # [-a] オプションが存在する場合は "." ファイルを含める
+  flags = !params.empty? && params[:a] ? File::FNM_DOTMATCH : 0
+  Dir.glob(file_name, flags, base: folder_name)
+end
+
+def option_params
+  opt = OptionParser.new
+  params = {}
+  opt.on('-a') { |v| params[:a] = v }
+  opt.parse(ARGV)
+  params
 end
 
 def main
