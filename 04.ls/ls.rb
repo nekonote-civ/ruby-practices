@@ -32,7 +32,7 @@ def search_files
   params = option_params
 
   # コマンドライン引数がオプションのみ以外の場合はファイル or ディレクトリの指定を行う
-  if params.length != ARGV.length && !ARGV.empty?
+  if params.length != ARGV.length
     argv = params.empty? ? ARGV[0] : ARGV[-1]
     if FileTest.directory?(argv)
       folder_name = argv
@@ -44,7 +44,7 @@ def search_files
   end
 
   # [-a] オプションが存在する場合は "." ファイルを含める
-  flags = !params.empty? && params[:a] ? File::FNM_DOTMATCH : 0
+  flags = params[:a] ? File::FNM_DOTMATCH : 0
   Dir.glob(file_name, flags, base: folder_name)
 end
 
