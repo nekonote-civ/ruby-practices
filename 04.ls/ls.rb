@@ -32,7 +32,7 @@ def search_files
   params = option_params
 
   # コマンドライン引数がオプションのみ以外の場合はファイル or ディレクトリの指定を行う
-  if params.length != ARGV.length
+  unless ARGV.empty?
     argv = params.empty? ? ARGV[0] : ARGV[-1]
     if FileTest.directory?(argv)
       folder_name = argv
@@ -52,7 +52,7 @@ def option_params
   opt = OptionParser.new
   params = {}
   opt.on('-a') { |v| params[:a] = v }
-  opt.parse(ARGV)
+  opt.parse!(ARGV)
   params
 end
 
