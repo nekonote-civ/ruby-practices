@@ -33,7 +33,7 @@ def search_files
 
   # コマンドライン引数がオプションのみ以外の場合はファイル or ディレクトリの指定を行う
   unless ARGV.empty?
-    argv = params.empty? ? ARGV[0] : ARGV[-1]
+    argv = ARGV[0]
     if FileTest.directory?(argv)
       folder_name = argv
     else
