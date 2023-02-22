@@ -45,13 +45,17 @@ def search_files
 
   # [-a] オプションが存在する場合は "." ファイルを含める
   flags = params[:a] ? File::FNM_DOTMATCH : 0
-  Dir.glob(file_name, flags, base: folder_name)
+  files = Dir.glob(file_name, flags, base: folder_name)
+
+  # [-r] オプションが存在する場合は逆順にする
+  params[:r] ? files.reverse : files
 end
 
 def option_params
   opt = OptionParser.new
   params = {}
   opt.on('-a') { |v| params[:a] = v }
+  opt.on('-r') { |v| params[:r] = v }
   opt.parse!(ARGV)
   params
 end
