@@ -128,7 +128,7 @@ def main
       file_attr[:group] = Etc.getpwuid(file_stat.gid).name
 
       # ファイルサイズ
-      file_attr[:size] = file_attr[:type] == 'c' || file_attr[:type] == 'b' ? "#{file_stat.rdev_major}, file_stat.rdev_minor" : file_stat.size
+      file_attr[:size] = file_attr[:type] == 'c' || file_attr[:type] == 'b' ? "#{file_stat.rdev_major}, #{file_stat.rdev_minor}" : file_stat.size
     end
   else
     row_count = files.length / NUMBER_OF_COLUMNS
