@@ -150,7 +150,7 @@ def main
       file_attr[:mtime] = format('%2<month>d月 %2<day>d %02<hour>d:%02<min>d', month: mtime.month, day: mtime.day, hour: mtime.hour, min: mtime.min)
 
       # ファイル名
-      file_attr[:name] = file
+      file_attr[:name] = file_stat.symlink? ? "#{file} -> #{File.readlink(full_path)}" : file
 
       file_attr
     end
