@@ -105,8 +105,8 @@ def main
     total_blocks = 0
 
     # ファイルを順番に繰り返す
-    files.each do |f|
-      full_path = "#{base_path}#{f}"
+    files.each do |file|
+      full_path = "#{base_path}#{file}"
       file_stat = File.lstat(full_path)
       total_blocks += file_stat.blocks
 
@@ -129,6 +129,16 @@ def main
 
       # ファイルサイズ
       file_attr[:size] = file_attr[:type] == 'c' || file_attr[:type] == 'b' ? "#{file_stat.rdev_major}, #{file_stat.rdev_minor}" : file_stat.size
+
+      # 更新日時
+      month = file_stat.mtime.month
+      day = file_stat.mtime.day
+      hour = file_stat.mtime.hour
+      min = file_stat.mtime.min
+      file_attr[:mtime] = format("%2d月 %2d %d:%d", month, day, hour, min)
+
+      # ファイル名
+      file_attr[:name] = file
     end
   else
     row_count = files.length / NUMBER_OF_COLUMNS
