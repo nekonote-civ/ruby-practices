@@ -101,10 +101,8 @@ def main
       base_path << '/' if base_path[-1] != '/'
     end
 
-    # 合計ブロック数
     total_blocks = 0
 
-    # ファイルを順番に繰り返す
     files.each do |file|
       full_path = "#{base_path}#{file}"
       file_stat = File.lstat(full_path)
@@ -128,7 +126,7 @@ def main
       file_attr[:group] = Etc.getpwuid(file_stat.gid).name
 
       # ファイルサイズ
-      file_attr[:size] = file_attr[:type] == 'c' || file_attr[:type] == 'b' ? "#{file_stat.rdev_major}, #{file_stat.rdev_minor}" : file_stat.size
+      file_attr[:size] = %w[b c].include?(file_attr[:type]) ? "#{file_stat.rdev_major}, #{file_stat.rdev_minor}" : file_stat.size
 
       # 更新日時
       month = file_stat.mtime.month
