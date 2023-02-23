@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'optparse'
+require 'etc'
 
 NUMBER_OF_COLUMNS = 3
 SINGLE_BYTE_CHAR_DISPLAY_LENGTH = 1
@@ -107,19 +108,27 @@ def main
     files.each do |f|
       full_path = "#{base_path}#{f}"
       file_stat = File.lstat(full_path)
+      total_blocks += file_stat.blocks
+
+      file_attr = {}
 
       # ファイルのタイプ
-      file_type = convert_file_type(file_stat.ftype)
+      file_attr[:type] = convert_file_type(file_stat.ftype)
 
       # ファイルのパーミッション
       file_mode = file_stat.mode.to_s(8).slice(-3, 3)
       file_permission = file_mode.each_char.map { |mode| convert_file_permission(mode) }.join
-      total_blocks += file_stat.blocks
+      file_attr[:permission] = file_permission
 
       # ファイルのハードリンク
-      file_hard_link = file_stat.nlink
+      file_attr[:hard_link] = file_stat.nlink
 
-      puts "#{file_type}#{file_permission} #{file_hard_link}"
+      # ファイルの所有者/グループ
+      file_attr[:user] = Etc.getpwuid(file_stat.uid).name
+      file_attr[:group] = Etc.getpwuid(file_stat.gid).name
+
+      # ファイルサイズ
+      file_attr[:size] = file_attr[:type] == 'c' || file_attr[:type] == 'b' ? "#{file_stat.rdev_major}, file_stat.rdev_minor" : file_stat.size
     end
   else
     row_count = files.length / NUMBER_OF_COLUMNS
