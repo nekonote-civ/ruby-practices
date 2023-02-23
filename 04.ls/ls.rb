@@ -26,14 +26,12 @@ def print_format_file_name(file_names_hash)
   print "#{file_names_hash[:name]}#{spaces}#{OFFSET_SPACES}"
 end
 
-def search_files
+def search_files(params, argv)
   file_name = '*'
   folder_name = nil
-  params = option_params
 
   # コマンドライン引数がオプションのみ以外の場合はファイル or ディレクトリの指定を行う
-  unless ARGV.empty?
-    argv = ARGV[0]
+  unless argv.empty?
     if FileTest.directory?(argv)
       folder_name = argv
     else
@@ -56,31 +54,92 @@ def option_params
   params = {}
   opt.on('-a') { |v| params[:a] = v }
   opt.on('-r') { |v| params[:r] = v }
+  opt.on('-l') { |v| params[:l] = v }
   opt.parse!(ARGV)
   params
 end
 
+def convert_file_type(type)
+  case type
+  when 'file' then '-'
+  when 'directory' then 'd'
+  when 'characterSpecial' then 'c'
+  when 'blockSpecial' then 'b'
+  when 'fifo' then 'p'
+  when 'link' then 'l'
+  when 'socket' then 's'
+  else ''
+  end
+end
+
+def convert_file_permission(mode)
+  case mode
+  when '7' then 'rwx'
+  when '6' then 'rw-'
+  when '5' then 'r-x'
+  when '4' then 'r--'
+  when '3' then '-wx'
+  when '2' then '-w-'
+  when '1' then '--x'
+  when '0' then '---'
+  else ''
+  end
+end
+
 def main
-  files = search_files
+  params = option_params
+  argv = ARGV.empty? ? '' : ARGV[0]
+  files = search_files(params, argv)
   return if files.empty?
 
-  row_count = files.length / NUMBER_OF_COLUMNS
-  max_row = (files.length % NUMBER_OF_COLUMNS).zero? ? row_count : row_count + 1
-  file_names_list = files.each_slice(max_row).to_a
-
-  file_names_hash = file_names_list.map do |file_names|
-    max_length = max_file_name_length(file_names)
-    file_names.map do |name|
-      length = display_length(name)
-      { name:, length:, max_length: }
+  # [-l] オプションが存在する場合は詳細情報付きで縦に表示する
+  if params[:l]
+    base_path = ''
+    if !argv.empty? && FileTest.directory?(argv)
+      base_path = +argv
+      base_path << '/' if base_path[-1] != '/'
     end
-  end
 
-  max_row.times do |row|
-    file_names_hash.length.times do |col|
-      print_format_file_name(file_names_hash[col][row]) if file_names_hash[col][row]
+    # 合計ブロック数
+    total_blocks = 0
+
+    # ファイルを順番に繰り返す
+    files.each do |f|
+      full_path = "#{base_path}#{f}"
+      file_stat = File.lstat(full_path)
+
+      # ファイルのタイプ
+      file_type = convert_file_type(file_stat.ftype)
+
+      # ファイルのパーミッション
+      file_mode = file_stat.mode.to_s(8).slice(-3, 3)
+      file_permission = file_mode.each_char.map { |mode| convert_file_permission(mode) }.join
+      total_blocks += file_stat.blocks
+
+      # ファイルのハードリンク
+      file_hard_link = file_stat.nlink
+
+      puts "#{file_type}#{file_permission} #{file_hard_link}"
     end
-    puts
+  else
+    row_count = files.length / NUMBER_OF_COLUMNS
+    max_row = (files.length % NUMBER_OF_COLUMNS).zero? ? row_count : row_count + 1
+    file_names_list = files.each_slice(max_row).to_a
+
+    file_names_hash = file_names_list.map do |file_names|
+      max_length = max_file_name_length(file_names)
+      file_names.map do |name|
+        length = display_length(name)
+        { name:, length:, max_length: }
+      end
+    end
+
+    max_row.times do |row|
+      file_names_hash.length.times do |col|
+        print_format_file_name(file_names_hash[col][row]) if file_names_hash[col][row]
+      end
+      puts
+    end
   end
 end
 
