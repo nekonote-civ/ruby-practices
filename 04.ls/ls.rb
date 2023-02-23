@@ -87,6 +87,15 @@ def convert_file_permission(mode)
   end
 end
 
+def max_hath_string_length(array, symbol)
+  length_list = array.map do |file_attr|
+    file_attr[symbol]&.length
+  end
+
+  length_list.delete(nil)
+  length_list.max
+end
+
 def main
   params = option_params
   argv = ARGV.empty? ? '' : ARGV[0]
@@ -103,7 +112,7 @@ def main
 
     total_blocks = 0
 
-    files.each do |file|
+    file_attr_list = files.map do |file|
       full_path = "#{base_path}#{file}"
       file_stat = File.lstat(full_path)
       total_blocks += file_stat.blocks
@@ -122,21 +131,51 @@ def main
       file_attr[:hard_link] = file_stat.nlink
 
       # ファイルの所有者/グループ
-      file_attr[:user] = Etc.getpwuid(file_stat.uid).name
-      file_attr[:group] = Etc.getpwuid(file_stat.gid).name
+      user_name = Etc.getpwuid(file_stat.uid).name
+      file_attr[:user] = user_name
+
+      group_name = Etc.getpwuid(file_stat.gid).name
+      file_attr[:group] = group_name
 
       # ファイルサイズ
-      file_attr[:size] = %w[b c].include?(file_attr[:type]) ? "#{file_stat.rdev_major}, #{file_stat.rdev_minor}" : file_stat.size
+      if %w[b c].include?(file_attr[:type])
+        file_attr[:major] = file_stat.rdev_major.to_s
+        file_attr[:minor] = file_stat.rdev_minor.to_s
+      else
+        file_attr[:size] = file_stat.size.to_s
+      end
 
       # 更新日時
-      month = file_stat.mtime.month
-      day = file_stat.mtime.day
-      hour = file_stat.mtime.hour
-      min = file_stat.mtime.min
-      file_attr[:mtime] = format("%2d月 %2d %d:%d", month, day, hour, min)
+      mtime = file_stat.mtime
+      file_attr[:mtime] = format('%2<month>d月 %2<day>d %02<hour>d:%02<min>d', month: mtime.month, day: mtime.day, hour: mtime.hour, min: mtime.min)
 
       # ファイル名
       file_attr[:name] = file
+
+      file_attr
+    end
+
+    puts "合計 #{total_blocks}"
+
+    user_max_length = max_hath_string_length(file_attr_list, :user)
+    group_max_length = max_hath_string_length(file_attr_list, :group)
+    size_max_length = max_hath_string_length(file_attr_list, :size)
+    major_max_length = max_hath_string_length(file_attr_list, :major)
+    minor_max_length = max_hath_string_length(file_attr_list, :minor)
+    size_or_version_max_length = [size_max_length, major_max_length + minor_max_length + 2].max
+
+    file_attr_list.each do |file|
+      format_file_name = +"#{file[:type]}#{file[:permission]}"
+      format_file_name << " #{file[:hard_link]}"
+      format_file_name << " #{file[:user].ljust(user_max_length)} #{file[:group].ljust(group_max_length)}"
+      format_file_name << if file[:size]
+                            " #{file[:size].rjust(size_or_version_max_length)}"
+                          else
+                            " #{file[:major].rjust(major_max_length)}, #{file[:minor].rjust(minor_max_length)}"
+                          end
+      format_file_name << " #{file[:mtime]}"
+      format_file_name << " #{file[:name]}"
+      puts format_file_name
     end
   else
     row_count = files.length / NUMBER_OF_COLUMNS
