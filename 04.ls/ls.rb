@@ -87,15 +87,6 @@ def convert_file_permission(mode)
   end
 end
 
-def max_hath_string_length(array, symbol)
-  length_list = array.map do |file_attr|
-    file_attr[symbol]&.length
-  end
-
-  length_list.delete(nil)
-  length_list.max
-end
-
 def main
   params = option_params
   argv = ARGV.empty? ? '' : ARGV[0]
@@ -111,6 +102,17 @@ def main
     end
 
     total_blocks = 0
+
+    # 項目別の最大文字列長
+    max_length_list = {
+      hard_link: 0,
+      user: 0,
+      group: 0,
+      size: 0,
+      major: 0,
+      minor: 0,
+      size_or_version: 0
+    }
 
     file_attr_list = files.map do |file|
       full_path = "#{base_path}#{file}"
@@ -128,21 +130,27 @@ def main
       file_attr[:permission] = file_permission
 
       # ファイルのハードリンク
-      file_attr[:hard_link] = file_stat.nlink
+      file_attr[:hard_link] = file_stat.nlink.to_s
+      max_length_list[:hard_link] = max_length_list[:hard_link] > file_attr[:hard_link].length ? max_length_list[:hard_link] : file_attr[:hard_link].length
 
       # ファイルの所有者/グループ
       user_name = Etc.getpwuid(file_stat.uid).name
       file_attr[:user] = user_name
+      max_length_list[:user] = max_length_list[:user] > file_attr[:user].length ? max_length_list[:user] : file_attr[:user].length
 
       group_name = Etc.getpwuid(file_stat.gid).name
       file_attr[:group] = group_name
+      max_length_list[:group] = max_length_list[:group] > file_attr[:group].length ? max_length_list[:group] : file_attr[:group].length
 
-      # ファイルサイズ
+      # ファイルサイズ or メジャー/マイナー番号
       if %w[b c].include?(file_attr[:type])
         file_attr[:major] = file_stat.rdev_major.to_s
         file_attr[:minor] = file_stat.rdev_minor.to_s
+        max_length_list[:major] = max_length_list[:major] > file_attr[:major].length ? max_length_list[:major] : file_attr[:major].length
+        max_length_list[:minor] = max_length_list[:minor] > file_attr[:minor].length ? max_length_list[:minor] : file_attr[:minor].length
       else
         file_attr[:size] = file_stat.size.to_s
+        max_length_list[:size] = max_length_list[:size] > file_attr[:size].length ? max_length_list[:size] : file_attr[:size].length
       end
 
       # 更新日時
@@ -155,23 +163,19 @@ def main
       file_attr
     end
 
-    puts "合計 #{total_blocks}"
+    # メジャー/マイナー番号の場合は " ," で連結されるため +2 のオフセットを行う
+    max_length_list[:size_or_version] = [max_length_list[:size], max_length_list[:major] + max_length_list[:minor] + 2].max
 
-    user_max_length = max_hath_string_length(file_attr_list, :user)
-    group_max_length = max_hath_string_length(file_attr_list, :group)
-    size_max_length = max_hath_string_length(file_attr_list, :size)
-    major_max_length = max_hath_string_length(file_attr_list, :major)
-    minor_max_length = max_hath_string_length(file_attr_list, :minor)
-    size_or_version_max_length = [size_max_length, major_max_length + minor_max_length + 2].max
+    puts "合計 #{total_blocks}"
 
     file_attr_list.each do |file|
       format_file_name = +"#{file[:type]}#{file[:permission]}"
-      format_file_name << " #{file[:hard_link]}"
-      format_file_name << " #{file[:user].ljust(user_max_length)} #{file[:group].ljust(group_max_length)}"
+      format_file_name << " #{file[:hard_link].rjust(max_length_list[:hard_link])}"
+      format_file_name << " #{file[:user].ljust(max_length_list[:user])} #{file[:group].ljust(max_length_list[:group])}"
       format_file_name << if file[:size]
-                            " #{file[:size].rjust(size_or_version_max_length)}"
+                            " #{file[:size].rjust(max_length_list[:size_or_version])}"
                           else
-                            " #{file[:major].rjust(major_max_length)}, #{file[:minor].rjust(minor_max_length)}"
+                            " #{file[:major].rjust(max_length_list[:major])}, #{file[:minor].rjust(max_length_list[:minor])}"
                           end
       format_file_name << " #{file[:mtime]}"
       format_file_name << " #{file[:name]}"
