@@ -73,24 +73,44 @@ def convert_file_type(type)
   end
 end
 
-def convert_file_permission(mode)
-  case mode
-  when '7' then 'rwx'
-  when '6' then 'rw-'
-  when '5' then 'r-x'
-  when '4' then 'r--'
-  when '3' then '-wx'
-  when '2' then '-w-'
-  when '1' then '--x'
-  when '0' then '---'
-  else ''
-  end
+def convert_access_permission(octal_mode)
+  octal_mode.slice(-3, 3).each_char.map do |bit|
+    {
+      '7' => 'rwx',
+      '6' => 'rw-',
+      '5' => 'r-x',
+      '4' => 'r--',
+      '3' => '-wx',
+      '2' => '-w-',
+      '1' => '--x',
+      '0' => '---'
+    }[bit]
+  end.join
+end
+
+def convert_special_permission(octal_mode, permission)
+  special_permission_number = octal_mode[2].to_i
+  is_sticky = special_permission_number & 1 != 0
+  is_guid = special_permission_number & 2 != 0
+  is_suid = special_permission_number & 4 != 0
+
+  permission[2] = permission[2] == 'x' ? 's' : 'S' if is_suid
+  permission[5] = permission[5] == 'x' ? 's' : 'S' if is_guid
+  permission[-1] = permission[-1] == 'x' ? 't' : 'T' if is_sticky
+  permission
+end
+
+def convert_permission(mode)
+  octal_mode = mode.to_s(8).rjust(6, '0')
+  permission = convert_access_permission(octal_mode)
+  convert_special_permission(octal_mode, permission)
 end
 
 def main
   params = option_params
   argv = ARGV.empty? ? '' : ARGV[0]
   files = search_files(params, argv)
+
   return if files.empty?
 
   # [-l] オプションが存在する場合は詳細情報付きで縦に表示する
@@ -125,9 +145,7 @@ def main
       file_attr[:type] = convert_file_type(file_stat.ftype)
 
       # ファイルのパーミッション
-      file_mode = file_stat.mode.to_s(8).slice(-3, 3)
-      file_permission = file_mode.each_char.map { |mode| convert_file_permission(mode) }.join
-      file_attr[:permission] = file_permission
+      file_attr[:permission] = convert_permission(file_stat.mode)
 
       # ファイルのハードリンク
       file_attr[:hard_link] = file_stat.nlink.to_s
