@@ -61,16 +61,15 @@ def option_params
 end
 
 def convert_file_type(type)
-  case type
-  when 'file' then '-'
-  when 'directory' then 'd'
-  when 'characterSpecial' then 'c'
-  when 'blockSpecial' then 'b'
-  when 'fifo' then 'p'
-  when 'link' then 'l'
-  when 'socket' then 's'
-  else ''
-  end
+  {
+    'file' => '-',
+    'directory' => 'd',
+    'characterSpecial' => 'c',
+    'blockSpecial' => 'b',
+    'fifo' => 'p',
+    'link' => 'l',
+    'socket' => 's'
+  }[type]
 end
 
 def convert_access_permission(octal_mode)
