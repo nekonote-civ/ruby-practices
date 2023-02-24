@@ -183,7 +183,8 @@ def main
     # メジャー/マイナー番号の場合は " ," で連結されるため +2 のオフセットを行う
     max_length_list[:size_or_version] = [max_length_list[:size], max_length_list[:major] + max_length_list[:minor] + 2].max
 
-    puts "合計 #{total_blocks}"
+    # stat と ls の扱うブロック数が異なるため補正
+    puts "合計 #{total_blocks / 2}"
 
     file_attr_list.each do |file|
       format_file_name = +"#{file[:type]}#{file[:permission]}"
