@@ -154,18 +154,16 @@ def file_attribute_hash(file, file_stat, full_path, max_length_list)
   file_attr
 end
 
-def format_list_style(file_attr_list, max_length_list)
+def format_list_style(file_attr_list, length)
   file_attr_list.map do |file|
-    format_file_name = +"#{file[:type]}#{file[:permission]}"
-    format_file_name << " #{file[:hard_link].rjust(max_length_list[:hard_link])}"
-    format_file_name << " #{file[:user].ljust(max_length_list[:user])} #{file[:group].ljust(max_length_list[:group])}"
-    format_file_name << if file[:size].empty?
-                          " #{file[:major].rjust(max_length_list[:major])}, #{file[:minor].rjust(max_length_list[:minor])}"
-                        else
-                          " #{file[:size].rjust(max_length_list[:size_or_version])}"
-                        end
-    format_file_name << " #{file[:mtime]}"
-    format_file_name << " #{file[:name]}"
+    [
+      "#{file[:type]}#{file[:permission]}",
+      " #{file[:hard_link].rjust(length[:hard_link])}",
+      " #{file[:user].ljust(length[:user])} #{file[:group].ljust(length[:group])}",
+      file[:size].empty? ? " #{file[:major].rjust(length[:major])}, #{file[:minor].rjust(length[:minor])}" : " #{file[:size].rjust(length[:size_or_version])}",
+      " #{file[:mtime]}",
+      " #{file[:name]}"
+    ].join
   end
 end
 
