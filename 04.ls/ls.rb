@@ -28,16 +28,16 @@ def print_format_file_name(file_names_hash)
   print "#{file_names_hash[:name]}#{spaces}#{OFFSET_SPACES}"
 end
 
-def search_files(params, argv)
+def search_files(params, base_dir)
   file_name = '*'
   folder_name = nil
 
   # コマンドライン引数がオプションのみ以外の場合はファイル or ディレクトリの指定を行う
-  unless argv.empty?
-    if FileTest.directory?(argv)
-      folder_name = argv
+  unless base_dir.empty?
+    if FileTest.directory?(base_dir)
+      folder_name = base_dir
     else
-      argv_array = argv.split('/')
+      argv_array = base_dir.split('/')
       file_name = argv_array.pop
       folder_name = argv_array.join('/')
     end
@@ -108,9 +108,9 @@ def convert_permission(mode)
 end
 
 # オプションにディレクトリが指定された場合、末尾に "/" を付与して返却
-def base_path(argv)
-  if !argv.empty? && FileTest.directory?(argv)
-    base_path = argv[-1] != '/' ? "#{argv}/" : argv
+def base_path(base_dir)
+  if !base_dir.empty? && FileTest.directory?(base_dir)
+    base_path = base_dir[-1] != '/' ? "#{base_dir}/" : base_dir
   end
   base_path || ''
 end
@@ -167,7 +167,7 @@ def format_list_style(file_attr_list, length)
   end
 end
 
-def print_list_style(argv, files)
+def print_list_style(base_dir, files)
   # 最大文字列長リスト
   max_length_list = {
     hard_link: 0,
@@ -180,7 +180,7 @@ def print_list_style(argv, files)
   }
 
   total_blocks = 0
-  base_path = base_path(argv)
+  base_path = base_path(base_dir)
   file_attr_list = files.map do |file|
     full_path = "#{base_path}#{file}"
     file_stat = File.lstat(full_path)
@@ -216,13 +216,13 @@ end
 
 def main
   params = option_params
-  argv = ARGV.empty? ? '' : ARGV[0]
-  files = search_files(params, argv)
+  base_dir = ARGV.empty? ? '' : ARGV[0]
+  files = search_files(params, base_dir)
 
   return if files.empty?
 
   if params[:l]
-    print_list_style(argv, files)
+    print_list_style(base_dir, files)
   else
     print_default_style(files)
   end
