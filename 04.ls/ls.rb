@@ -140,22 +140,20 @@ def max_length_list(file_attr, max_length_list)
 end
 
 def file_attribute_hash(file, file_stat, full_path, max_length_list)
-  file_attr = {}
-  file_attr[:type] = convert_file_type(file_stat.ftype)
-  file_attr[:permission] = convert_permission(file_stat.mode)
-  file_attr[:hard_link] = file_stat.nlink.to_s
-  file_attr[:user] = Etc.getpwuid(file_stat.uid).name
-  file_attr[:group] = Etc.getpwuid(file_stat.gid).name
-  if device?(file_attr[:type])
-    file_attr[:major] = file_stat.rdev_major.to_s
-    file_attr[:minor] = file_stat.rdev_minor.to_s
-  else
-    file_attr[:size] = file_stat.size.to_s
-  end
   mtime = file_stat.mtime
-  file_attr[:mtime] = format('%2<month>d月 %2<day>d %02<hour>d:%02<min>d', month: mtime.month, day: mtime.day, hour: mtime.hour, min: mtime.min)
-  file_attr[:name] = file_stat.symlink? ? "#{file} -> #{File.readlink(full_path)}" : file
-
+  file_type = convert_file_type(file_stat.ftype)
+  file_attr = {
+    type: file_type,
+    permission: convert_permission(file_stat.mode),
+    hard_link: file_stat.nlink.to_s,
+    user: Etc.getpwuid(file_stat.uid).name,
+    group: Etc.getpwuid(file_stat.gid).name,
+    major: device?(file_type) ? file_stat.rdev_major.to_s : '',
+    minor: device?(file_type) ? file_stat.rdev_minor.to_s : '',
+    size: !device?(file_type) ? file_stat.size.to_s : '',
+    mtime: format('%2<month>d月 %2<day>d %02<hour>d:%02<min>d', month: mtime.month, day: mtime.day, hour: mtime.hour, min: mtime.min),
+    name: file_stat.symlink? ? "#{file} -> #{File.readlink(full_path)}" : file
+  }
   max_length_list(file_attr, max_length_list)
   file_attr
 end
@@ -165,7 +163,7 @@ def format_list_style(file_attr_list, max_length_list)
     format_file_name = +"#{file[:type]}#{file[:permission]}"
     format_file_name << " #{file[:hard_link].rjust(max_length_list[:hard_link])}"
     format_file_name << " #{file[:user].ljust(max_length_list[:user])} #{file[:group].ljust(max_length_list[:group])}"
-    format_file_name << if device?(file[:type])
+    format_file_name << if file[:size].empty?
                           " #{file[:major].rjust(max_length_list[:major])}, #{file[:minor].rjust(max_length_list[:minor])}"
                         else
                           " #{file[:size].rjust(max_length_list[:size_or_version])}"
