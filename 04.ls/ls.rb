@@ -115,24 +115,20 @@ def base_path(argv)
   base_path || ''
 end
 
-def return_large_value(value1, value2)
-  value1 > value2 ? value1 : value2
-end
-
 def device?(file_attr_type)
   %w[b c].include?(file_attr_type)
 end
 
 # 文字列幅調整が必要な項目ごとの文字列長リスト
 def max_length_list(file_attr, max_length_list)
-  max_length_list[:hard_link] = return_large_value(max_length_list[:hard_link], file_attr[:hard_link].length)
-  max_length_list[:user] = return_large_value(max_length_list[:user], file_attr[:user].length)
-  max_length_list[:group] = return_large_value(max_length_list[:group], file_attr[:group].length)
+  max_length_list[:hard_link] = [max_length_list[:hard_link], file_attr[:hard_link].length].max
+  max_length_list[:user] = [max_length_list[:user], file_attr[:user].length].max
+  max_length_list[:group] = [max_length_list[:group], file_attr[:group].length].max
   if device?(file_attr[:type])
-    max_length_list[:major] = return_large_value(max_length_list[:major], file_attr[:major].length)
-    max_length_list[:minor] = return_large_value(max_length_list[:minor], file_attr[:minor].length)
+    max_length_list[:major] = [max_length_list[:major], file_attr[:major].length].max
+    max_length_list[:minor] = [max_length_list[:minor], file_attr[:minor].length].max
   else
-    max_length_list[:size] = return_large_value(max_length_list[:size], file_attr[:size].length)
+    max_length_list[:size] = [max_length_list[:size], file_attr[:size].length].max
   end
 
   # メジャー/マイナーの場合は " ," で連結されるためオフセットを含めて判定する
