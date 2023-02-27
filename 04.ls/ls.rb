@@ -121,18 +121,17 @@ end
 
 # 文字列幅調整が必要な項目ごとの文字列長リスト
 def max_length_list(file_attr, max_length_list)
-  max_length_list[:hard_link] = [max_length_list[:hard_link], file_attr[:hard_link].length].max
-  max_length_list[:user] = [max_length_list[:user], file_attr[:user].length].max
-  max_length_list[:group] = [max_length_list[:group], file_attr[:group].length].max
-  if device?(file_attr[:type])
-    max_length_list[:major] = [max_length_list[:major], file_attr[:major].length].max
-    max_length_list[:minor] = [max_length_list[:minor], file_attr[:minor].length].max
-  else
-    max_length_list[:size] = [max_length_list[:size], file_attr[:size].length].max
-  end
+  {
+    hard_link: [max_length_list[:hard_link], file_attr[:hard_link].length].max,
+    user: [max_length_list[:user], file_attr[:user].length].max,
+    group: [max_length_list[:group], file_attr[:group].length].max,
+    major: device?(file_attr[:type]) ? [max_length_list[:major], file_attr[:major].length].max : max_length_list[:major],
+    minor: device?(file_attr[:type]) ? [max_length_list[:minor], file_attr[:minor].length].max : max_length_list[:minor],
+    size: !device?(file_attr[:type]) ? [max_length_list[:size], file_attr[:size].length].max : max_length_list[:size],
 
-  # メジャー/マイナーの場合は " ," で連結されるためオフセットを含めて判定する
-  max_length_list[:size_or_version] = [max_length_list[:size], max_length_list[:major] + max_length_list[:minor] + DEVICE_DISPLAY_OFFSET].max
+    # メジャー/マイナーの場合は " ," で連結されるためオフセットを含めて判定する
+    size_or_version: [max_length_list[:size], max_length_list[:major] + max_length_list[:minor] + DEVICE_DISPLAY_OFFSET].max
+  }
 end
 
 def file_attribute_hash(file, file_stat, full_path, max_length_list)
@@ -148,10 +147,10 @@ def file_attribute_hash(file, file_stat, full_path, max_length_list)
     minor: device?(file_type) ? file_stat.rdev_minor.to_s : '',
     size: !device?(file_type) ? file_stat.size.to_s : '',
     mtime: format('%2<month>d月 %2<day>d %02<hour>d:%02<min>d', month: mtime.month, day: mtime.day, hour: mtime.hour, min: mtime.min),
-    name: file_stat.symlink? ? "#{file} -> #{File.readlink(full_path)}" : file
+    name: file_stat.symlink? ? "#{file} -> #{File.readlink(full_path)}" : file,
+    blocks: file_stat.blocks
   }
-  max_length_list(file_attr, max_length_list)
-  file_attr
+  [file_attr, max_length_list(file_attr, max_length_list)]
 end
 
 def format_list_style(file_attr_list, length)
@@ -179,15 +178,15 @@ def print_list_style(base_dir, files)
     size_or_version: 0
   }
 
-  total_blocks = 0
   base_path = base_path(base_dir)
   file_attr_list = files.map do |file|
     full_path = "#{base_path}#{file}"
     file_stat = File.lstat(full_path)
-    total_blocks += file_stat.blocks
-    file_attribute_hash(file, file_stat, full_path, max_length_list)
+    attr_list, max_length_list = file_attribute_hash(file, file_stat, full_path, max_length_list)
+    attr_list
   end
 
+  total_blocks = file_attr_list.map { |file_attr| file_attr[:blocks] }.sum
   # stat と ls の扱うブロック数が異なるため補正
   puts "合計 #{total_blocks / 2}"
   puts format_list_style(file_attr_list, max_length_list)
