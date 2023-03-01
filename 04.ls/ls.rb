@@ -120,7 +120,7 @@ def device?(file_attr_type)
 end
 
 # 文字列幅調整が必要な項目ごとの文字列長リスト
-def max_length_list(file_attr, max_length_list)
+def update_max_length_list(file_attr, max_length_list)
   {
     hard_link: [max_length_list[:hard_link], file_attr[:hard_link].length].max,
     user: [max_length_list[:user], file_attr[:user].length].max,
@@ -150,7 +150,7 @@ def file_attribute_hash(file, file_stat, full_path, max_length_list)
     name: file_stat.symlink? ? "#{file} -> #{File.readlink(full_path)}" : file,
     blocks: file_stat.blocks
   }
-  [file_attr, max_length_list(file_attr, max_length_list)]
+  [file_attr, update_max_length_list(file_attr, max_length_list)]
 end
 
 def format_list_style(file_attr_list, length)
