@@ -28,20 +28,24 @@ end
 
 def main
   params = option_params
-  str = File.read(ARGV[0])
+  file_name = ARGV[0]
+  file_text = File.read(file_name)
 
   if in_params?(params)
     puts [
-      params[:l] ? get_return_count(str).to_s : '',
-      params[:w] ? get_words_count(str).to_s : '',
-      params[:c] ? str.bytesize.to_s : ''
+      params[:l] ? get_return_count(file_text).to_s : '',
+      params[:w] ? get_words_count(file_text).to_s : '',
+      params[:c] ? file_text.bytesize.to_s : ''
     ].reject(&:empty?).join(' ')
-  else
-    puts [
-      get_return_count(str),
-      get_words_count(str),
-      str.bytesize
-    ].join(' ')
+  else # no option
+    results = [
+      get_return_count(file_text).to_s,
+      get_words_count(file_text).to_s,
+      file_text.bytesize.to_s
+    ]
+    max_length = results.map(&:length).max
+    results << file_name
+    puts results.map { |result| result.rjust(max_length) }.join(' ')
   end
 end
 
