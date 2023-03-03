@@ -5,7 +5,7 @@
 require 'optparse'
 
 # オプション未指定の場合は最大文字列長が固定
-NO_OPTION_MAX_LENGTH = 7
+NO_OPTION_LENGTH = 7
 
 def option_params
   opt = OptionParser.new
@@ -22,15 +22,10 @@ def get_return_count(text)
 end
 
 def get_words_count(text)
-  text.split(/[ \n\t]/).count { |element| !element.empty? }
+  text.split(/[ \n\t]/).count { |t| !t.empty? }
 end
 
-# オプションを指定されているか？
-def options_exists?(params)
-  params[:l] || params[:w] || params[:c]
-end
-
-def all_counts_to_string(text)
+def all_counts(text)
   [
     get_return_count(text).to_s,
     get_words_count(text).to_s,
@@ -38,7 +33,7 @@ def all_counts_to_string(text)
   ]
 end
 
-def exists_counts_to_string(text, params)
+def some_counts(text, params)
   [
     params[:l] ? get_return_count(text).to_s : '',
     params[:w] ? get_words_count(text).to_s : '',
@@ -46,41 +41,36 @@ def exists_counts_to_string(text, params)
   ].reject(&:empty?)
 end
 
+def get_counts(params, text)
+  params.empty? ? all_counts(text) : some_counts(text, params)
+end
+
+def join_counts(counts, length)
+  counts.map { |count| count.rjust(length) }.join(' ')
+end
+
+def print_counts(params, counts, length, file_name = '')
+  format = params.length == 1 ? counts[0] : join_counts(counts, length)
+  puts file_name.empty? ? format : "#{format} #{file_name}"
+end
+
+def print_type_pipe(params)
+  pipe_text = $stdin.read
+  counts = get_counts(params, pipe_text)
+  print_counts(params, counts, NO_OPTION_LENGTH)
+end
+
+def print_type_directory(params)
+  file_name = ARGV[0]
+  file_text = File.read(file_name)
+  counts = get_counts(params, file_text)
+  print_length = counts.map(&:length).max
+  print_counts(params, counts, print_length, file_name)
+end
+
 def main
   params = option_params
-
-  if File.pipe?($stdin)
-    read_line = $stdin.read
-    if options_exists?(params)
-      if params.length == 1
-        results = exists_counts_to_string(read_line, params).join(' ')
-        puts results
-      else
-        results = exists_counts_to_string(read_line, params)
-        puts results.map { |result| result.rjust(NO_OPTION_MAX_LENGTH) }.join(' ')
-      end
-    else
-      results = all_counts_to_string(read_line)
-      puts results.map { |result| result.rjust(NO_OPTION_MAX_LENGTH) }.join(' ')
-    end
-  else
-    file_name = ARGV[0]
-    file_text = File.read(file_name)
-    if options_exists?(params)
-      if params.length == 1
-        results = exists_counts_to_string(file_text, params).push(file_name).join(' ')
-        puts results
-      else
-        results = exists_counts_to_string(file_text, params)
-        max_length = results.map(&:length).max
-        puts results.map { |result| result.rjust(max_length) }.push(file_name).join(' ')
-      end
-    else
-      results = all_counts_to_string(file_text)
-      max_length = results.map(&:length).max
-      puts results.map { |result| result.rjust(max_length) }.push(file_name).join(' ')
-    end
-  end
+  File.pipe?($stdin) ? print_type_pipe(params) : print_type_directory(params)
 end
 
 main
