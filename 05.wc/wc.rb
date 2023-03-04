@@ -55,58 +55,64 @@ def print_type_pipe(params)
   puts params.length == 1 ? counts[0] : join_counts(counts, NO_OPTION_LENGTH)
 end
 
-def add_total_count(counts)
-  total_counts = Array.new(counts[0].length) do |col|
-    Array.new(counts.length) do |row|
-      counts[row][col]
-    end.sum
-  end
-  counts << total_counts
+# 縦列毎の合計値の配列を作成
+def total_counts(counts)
+  Array.new(counts[0].length) { |col| Array.new(counts.length) { |row| counts[row][col] }.sum }
 end
 
-def print_type_file_length
+# [[a, b, c], [x, y, z]] のような2次元配列から表示文字列幅を算出
+# オプションが1つ、指定ファイルも1つ以外の場合はこの値でカラム毎の幅が決定される
+def column_print_length
   counts = ARGV.map do |file_name|
     file_text = File.read(file_name)
     all_counts(file_text)
   end
-  counts = add_total_count(counts)
-  counts.map { |count| count.map { |item| item.to_s.length }.max }.max
+  counts << total_counts(counts)
+  counts.map { |count| count.map { |count_item| count_item.to_s.length }.max }.max
+end
+
+def format_join_counts(idx, counts_length, join_counts, file_name)
+  idx != counts_length - 1 ? "#{join_counts} #{file_name}" : "#{join_counts} 合計"
+end
+
+def print_single_params(counts, file_names)
+  counts = counts.flatten(1)
+  if file_names.length == 1
+    puts "#{counts[0]} #{file_names[0]}"
+  else
+    counts << counts.sum
+    length = column_print_length
+    counts.each_with_index do |count, idx|
+      join_counts = count.to_s.rjust(length)
+      puts format_join_counts(idx, counts.length, join_counts, file_names[idx])
+    end
+  end
+end
+
+def print_multi_params(counts, file_names)
+  length = column_print_length
+  if file_names.length == 1
+    counts.each_with_index do |count, idx|
+      join_counts = join_counts(count, length)
+      puts "#{join_counts} #{file_names[idx]}"
+    end
+  else
+    counts << total_counts(counts)
+    counts.each_with_index do |count, idx|
+      join_counts = join_counts(count, length)
+      puts format_join_counts(idx, counts.length, join_counts, file_names[idx])
+    end
+  end
 end
 
 def print_type_file(params)
-  length = print_type_file_length
-
-  file_names = []
   counts = ARGV.map do |file_name|
     file_text = File.read(file_name)
-    file_names << file_name
     get_counts(params, file_text)
   end
 
-  if params.length == 1
-    counts = counts.flatten(1)
-    if file_names.length == 1
-      puts "#{counts[0]} #{file_names[0]}"
-    else
-      counts << counts.sum
-      counts.map.with_index do |count, idx|
-        puts idx != counts.length - 1 ? "#{count.to_s.rjust(length)} #{file_names[idx]}" : "#{count.to_s.rjust(length)} 合計"
-      end
-    end
-  else
-    if file_names.length == 1
-      counts.map.with_index do |count, idx|
-        format_counts = join_counts(count, length)
-        puts "#{format_counts} #{file_names[idx]}"
-      end
-    else
-      counts = add_total_count(counts)
-      counts.map.with_index do |count, idx|
-        format_counts = join_counts(count, length)
-        puts idx != counts.length - 1 ? "#{format_counts} #{file_names[idx]}" : "#{format_counts} 合計"
-      end
-    end
-  end
+  file_names = ARGV
+  params.length == 1 ? print_single_params(counts, file_names) : print_multi_params(counts, file_names)
 end
 
 def main
