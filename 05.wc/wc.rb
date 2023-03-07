@@ -25,7 +25,7 @@ def get_words_count(text)
   text.split(/[ \n\t]/).count { |t| !t.empty? }
 end
 
-def all_counts(text)
+def counts_all(text)
   [
     get_return_count(text),
     get_words_count(text),
@@ -33,7 +33,7 @@ def all_counts(text)
   ]
 end
 
-def some_counts(text, params)
+def counts_some(text, params)
   [
     params[:l] ? get_return_count(text) : 0,
     params[:w] ? get_words_count(text) : 0,
@@ -42,7 +42,7 @@ def some_counts(text, params)
 end
 
 def get_counts(params, text)
-  params.empty? ? all_counts(text) : some_counts(text, params)
+  params.empty? ? counts_all(text) : counts_some(text, params)
 end
 
 def join_counts(counts, length)
@@ -50,8 +50,7 @@ def join_counts(counts, length)
 end
 
 def print_type_pipe(params)
-  pipe_text = $stdin.read
-  counts = get_counts(params, pipe_text)
+  counts = get_counts(params, $stdin.read)
   puts params.length == 1 ? counts[0] : join_counts(counts, NO_OPTION_LENGTH)
 end
 
@@ -61,18 +60,24 @@ def total_counts(counts)
 end
 
 # [[a, b, c], [x, y, z]] のような2次元配列から表示文字列幅を算出
-# オプションが1つ、指定ファイルも1つ以外の場合はこの値でカラム毎の幅が決定される
+# 下記の様に オプションが1つ かつ 指定ファイルが1つ 以外の場合はここでカラム毎の幅が決定される
+# 例) wc.rb -l test.txt
 def column_print_length
   counts = ARGV.map do |file_name|
     file_text = File.read(file_name)
-    all_counts(file_text)
+    counts_all(file_text)
   end
   counts << total_counts(counts)
   counts.map { |count| count.map { |count_item| count_item.to_s.length }.max }.max
 end
 
-def format_join_counts(idx, counts_length, join_counts, file_name)
-  idx != counts_length - 1 ? "#{join_counts} #{file_name}" : "#{join_counts} 合計"
+# 0始まりの配列の最後に到達したか？
+def last_array_index?(idx, array_length)
+  idx == array_length - 1
+end
+
+def format_join_counts(is_last, join_counts, file_name)
+  is_last ? "#{join_counts} 合計" : "#{join_counts} #{file_name}"
 end
 
 def print_single_params(counts, file_names)
@@ -84,7 +89,7 @@ def print_single_params(counts, file_names)
     length = column_print_length
     counts.each_with_index do |count, idx|
       join_counts = count.to_s.rjust(length)
-      puts format_join_counts(idx, counts.length, join_counts, file_names[idx])
+      puts format_join_counts(last_array_index?(idx, counts.length), join_counts, file_names[idx])
     end
   end
 end
@@ -100,19 +105,14 @@ def print_multi_params(counts, file_names)
     counts << total_counts(counts)
     counts.each_with_index do |count, idx|
       join_counts = join_counts(count, length)
-      puts format_join_counts(idx, counts.length, join_counts, file_names[idx])
+      puts format_join_counts(last_array_index?(idx, counts.length), join_counts, file_names[idx])
     end
   end
 end
 
 def print_type_file(params)
-  counts = ARGV.map do |file_name|
-    file_text = File.read(file_name)
-    get_counts(params, file_text)
-  end
-
-  file_names = ARGV
-  params.length == 1 ? print_single_params(counts, file_names) : print_multi_params(counts, file_names)
+  counts = ARGV.map { |file_name| get_counts(params, File.read(file_name)) }
+  params.length == 1 ? print_single_params(counts, ARGV) : print_multi_params(counts, ARGV)
 end
 
 def main
