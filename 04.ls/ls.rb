@@ -121,17 +121,17 @@ end
 
 # 文字列幅調整が必要な項目ごとの文字列長リスト
 def update_max_length_list(file_attr, max_length_list)
-  {
+  list = {
     hard_link: [max_length_list[:hard_link], file_attr[:hard_link].length].max,
     user: [max_length_list[:user], file_attr[:user].length].max,
     group: [max_length_list[:group], file_attr[:group].length].max,
     major: device?(file_attr[:type]) ? [max_length_list[:major], file_attr[:major].length].max : max_length_list[:major],
     minor: device?(file_attr[:type]) ? [max_length_list[:minor], file_attr[:minor].length].max : max_length_list[:minor],
-    size: !device?(file_attr[:type]) ? [max_length_list[:size], file_attr[:size].length].max : max_length_list[:size],
-
-    # メジャー/マイナーの場合は " ," で連結されるためオフセットを含めて判定する
-    size_or_version: [max_length_list[:size], max_length_list[:major] + max_length_list[:minor] + DEVICE_DISPLAY_OFFSET].max
+    size: !device?(file_attr[:type]) ? [max_length_list[:size], file_attr[:size].length].max : max_length_list[:size]
   }
+  # メジャー/マイナーの場合は " ," で連結されるためオフセットを含めて判定する
+  list[:size_or_version] = [list[:size], list[:major] + list[:minor] + DEVICE_DISPLAY_OFFSET].max
+  list
 end
 
 def file_attribute_hash(file, file_stat, full_path, max_length_list)
