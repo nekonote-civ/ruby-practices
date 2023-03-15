@@ -7,6 +7,11 @@ require 'optparse'
 # オプション未指定の場合は最大文字列長が固定
 NO_OPTION_LENGTH = 7
 
+def main
+  params = option_params
+  File.pipe?($stdin) ? print_type_pipe(params) : print_type_file(params)
+end
+
 def option_params
   opt = OptionParser.new
   params = {}
@@ -115,9 +120,5 @@ def print_type_file(params)
   params.length == 1 ? print_single_params(counts, ARGV) : print_multi_params(counts, ARGV)
 end
 
-def main
-  params = option_params
-  File.pipe?($stdin) ? print_type_pipe(params) : print_type_file(params)
-end
-
+# メイン処理実行
 main
