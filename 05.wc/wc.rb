@@ -22,41 +22,48 @@ def option_params
   params
 end
 
-def get_return_count(text)
-  text.scan(/\n/).length
-end
-
-def get_words_count(text)
-  text.split(/[ \n\t]/).count { |t| !t.empty? }
-end
-
-def counts_all(text)
-  [
-    get_return_count(text),
-    get_words_count(text),
-    text.bytesize
-  ]
-end
-
-def counts_some(text, params)
-  [
-    params[:l] ? get_return_count(text) : 0,
-    params[:w] ? get_words_count(text) : 0,
-    params[:c] ? text.bytesize : 0
-  ].reject(&:zero?)
+def print_type_pipe(params)
+  counts = get_counts(params, $stdin.read)
+  length = single_option?(params) ? 0 : NO_OPTION_LENGTH
+  puts join_counts(counts, length)
 end
 
 def get_counts(params, text)
   params.empty? ? counts_all(text) : counts_some(text, params)
 end
 
-def join_counts(counts, length)
-  counts.map { |count| count.to_s.rjust(length) }.join(' ')
+def single_option?(params)
+  params.length == 1
 end
 
-def print_type_pipe(params)
-  counts = get_counts(params, $stdin.read)
-  puts params.length == 1 ? counts[0] : join_counts(counts, NO_OPTION_LENGTH)
+def join_counts(counts, length)
+  counts.map do |_key, value|
+    value.to_s.rjust(length)
+  end.join(' ')
+end
+
+def counts_all(text)
+  {
+    line: get_return_count(text),
+    word: get_words_count(text),
+    size: text.bytesize
+  }
+end
+
+def counts_some(text, params)
+  {
+    line: params[:l] ? get_return_count(text) : 0,
+    word: params[:w] ? get_words_count(text) : 0,
+    size: params[:c] ? text.bytesize : 0
+  }.reject { |_key, value| value.zero? }
+end
+
+def get_return_count(text)
+  text.scan(/\n/).length
+end
+
+def get_words_count(text)
+  text.split(/[ \n\t]/).count { |t| !t.empty? }
 end
 
 # 縦列毎の合計値の配列を作成
