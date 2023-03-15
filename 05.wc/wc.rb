@@ -37,7 +37,7 @@ def print_type_file(params)
   length = 0
   unless single_option?(params) && single_file?
     total_counts = sum_counts(counts_array, params)
-    length = total_counts.map { |_key, value| value.to_s.length }.max
+    length = total_counts.values.map { |value| value.to_s.length }.max
   end
 
   # 各カラムの値を出力
@@ -69,7 +69,7 @@ def single_file?
 end
 
 def join_counts(counts, length)
-  counts.map do |_key, value|
+  counts.values.map do |value|
     value.to_s.rjust(length)
   end.join(' ')
 end
