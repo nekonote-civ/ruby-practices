@@ -4,7 +4,6 @@
 
 require 'optparse'
 
-# オプション未指定の場合は最大文字列長が固定
 NO_OPTION_LENGTH = 7
 
 def main
@@ -33,21 +32,18 @@ def print_type_file(params)
     get_counts(params, File.read(file_name))
   end
 
-  # オプション数1 かつ ファイル数1 のパターン以外の場合は文字列幅が設定される
   length = 0
   unless single_option?(params) && single_file?
     total_counts = sum_counts(counts_array, params)
     length = total_counts.values.map { |value| value.to_s.length }.max
   end
 
-  # 各カラムの値を出力
   counts_array.each_with_index do |counts, idx|
     puts "#{join_counts(counts, length)} #{ARGV[idx]}"
   end
 
   return if single_file?
 
-  # 合計値を出力
   total_counts = sum_counts(counts_array, params)
   puts "#{join_counts(total_counts, length)} 合計"
 end
@@ -100,5 +96,4 @@ def init_total_counts(params)
   total_counts
 end
 
-# メイン処理実行
 main
