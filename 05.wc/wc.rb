@@ -35,7 +35,7 @@ def print_type_file(params)
   length = 0
   unless single_option?(params) && single_file?
     total_counts = sum_counts(counts_array, params)
-    length = total_counts.values.map { |value| value.to_s.length }.max
+    length = total_counts.values.max.to_s.length
   end
 
   counts_array.each_with_index do |counts, idx|
