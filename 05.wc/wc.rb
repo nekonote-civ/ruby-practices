@@ -22,38 +22,39 @@ def option_params
 end
 
 def print_type_pipe(params)
-  counts = get_counts(params, $stdin.read)
+  counts = get_counts($stdin.read)
   length = single_option?(params) ? 0 : NO_OPTION_LENGTH
-  puts join_counts(counts, length)
+  puts join_counts(counts, length, params)
 end
 
 def print_type_file(params)
   counts_array = ARGV.map do |file_name|
-    get_counts(params, File.read(file_name))
+    get_counts(File.read(file_name), file_name)
   end
 
   length = 0
   unless single_option?(params) && single_file?
-    total_counts = sum_counts(counts_array, params)
+    total_counts = sum_counts(counts_array)
     length = total_counts.values.max.to_s.length
   end
 
-  counts_array.each_with_index do |counts, idx|
-    puts "#{join_counts(counts, length)} #{ARGV[idx]}"
+  counts_array.each do |counts|
+    puts join_counts(counts, length, params)
   end
 
   return if single_file?
 
-  total_counts = sum_counts(counts_array, params)
-  puts "#{join_counts(total_counts, length)} 合計"
+  total_counts = sum_counts(counts_array)
+  puts "#{join_counts(total_counts, length, params)} 合計"
 end
 
-def get_counts(params, text)
-  counts = {}
-  counts[:line] = get_return_count(text) if params[:l] || params.empty?
-  counts[:word] = get_words_count(text) if params[:w] || params.empty?
-  counts[:size] = text.bytesize if params[:c] || params.empty?
-  counts
+def get_counts(text, file_name = '')
+  {
+    line: get_return_count(text),
+    word: get_words_count(text),
+    size: text.bytesize,
+    file_name:
+  }
 end
 
 def single_option?(params)
@@ -64,10 +65,13 @@ def single_file?
   ARGV.length == 1
 end
 
-def join_counts(counts, length)
-  counts.values.map do |value|
-    value.to_s.rjust(length)
-  end.join(' ')
+def join_counts(counts, length, params)
+  list = []
+  list << counts[:line].to_s.rjust(length) if params[:l]
+  list << counts[:word].to_s.rjust(length) if params[:w]
+  list << counts[:size].to_s.rjust(length) if params[:c]
+  list << counts[:file_name] if counts[:file_name] && !counts[:file_name].empty?
+  list.join(' ')
 end
 
 def get_return_count(text)
@@ -78,21 +82,13 @@ def get_words_count(text)
   text.split(/[ \n\t]/).count { |t| !t.empty? }
 end
 
-def sum_counts(counts_array, params)
-  total_counts = init_total_counts(params)
+def sum_counts(counts_array)
+  total_counts = { line: 0, word: 0, size: 0 }
   counts_array.each do |counts|
     counts.each do |key, value|
-      total_counts[key] += value if total_counts[key]
+      total_counts[key] += value if key != :file_name
     end
   end
-  total_counts
-end
-
-def init_total_counts(params)
-  total_counts = {}
-  total_counts[:line] = 0 if params[:l] || params.empty?
-  total_counts[:word] = 0 if params[:w] || params.empty?
-  total_counts[:size] = 0 if params[:c] || params.empty?
   total_counts
 end
 
