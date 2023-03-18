@@ -35,7 +35,9 @@ def print_type_file(params)
   length = 0
   total_counts = sum_counts(counts_array)
   unless single_option?(params) && single_file?
-    length = total_counts.values.max.to_s.length
+    length = total_counts.map do |key, value|
+      key != :file_name ? value : 0
+    end.max.to_s.length
   end
 
   counts_array.each do |counts|
@@ -44,7 +46,7 @@ def print_type_file(params)
 
   return if single_file?
 
-  puts "#{join_counts(total_counts, length, params)} 合計"
+  puts join_counts(total_counts, length, params)
 end
 
 def get_counts(text, file_name = '')
@@ -82,7 +84,7 @@ def get_words_count(text)
 end
 
 def sum_counts(counts_array)
-  total_counts = { line: 0, word: 0, size: 0 }
+  total_counts = { line: 0, word: 0, size: 0, file_name: '合計' }
   counts_array.each do |counts|
     counts.each do |key, value|
       total_counts[key] += value if key != :file_name
