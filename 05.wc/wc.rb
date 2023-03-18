@@ -33,8 +33,8 @@ def print_type_file(params)
   end
 
   length = 0
+  total_counts = sum_counts(counts_array)
   unless single_option?(params) && single_file?
-    total_counts = sum_counts(counts_array)
     length = total_counts.values.max.to_s.length
   end
 
@@ -44,7 +44,6 @@ def print_type_file(params)
 
   return if single_file?
 
-  total_counts = sum_counts(counts_array)
   puts "#{join_counts(total_counts, length, params)} 合計"
 end
 
