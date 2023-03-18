@@ -67,9 +67,9 @@ end
 
 def join_counts(counts, length, params)
   list = []
-  list << counts[:line].to_s.rjust(length) if params[:l]
-  list << counts[:word].to_s.rjust(length) if params[:w]
-  list << counts[:size].to_s.rjust(length) if params[:c]
+  list << counts[:line].to_s.rjust(length) if params[:l] || params.empty?
+  list << counts[:word].to_s.rjust(length) if params[:w] || params.empty?
+  list << counts[:size].to_s.rjust(length) if params[:c] || params.empty?
   list << counts[:file_name] if counts[:file_name] && !counts[:file_name].empty?
   list.join(' ')
 end
