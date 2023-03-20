@@ -14,9 +14,9 @@ end
 def option_params
   opt = OptionParser.new
   params = {}
-  opt.on('-l') { |v| params[:l] = v }
-  opt.on('-w') { |v| params[:w] = v }
-  opt.on('-c') { |v| params[:c] = v }
+  opt.on('-l') { |v| params[:line] = v }
+  opt.on('-w') { |v| params[:word] = v }
+  opt.on('-c') { |v| params[:size] = v }
   opt.parse!(ARGV)
   params
 end
@@ -67,11 +67,10 @@ def single_file?
 end
 
 def join_counts(counts, length, params)
-  list = []
-  list << counts[:line].to_s.rjust(length) if params[:l] || params.empty?
-  list << counts[:word].to_s.rjust(length) if params[:w] || params.empty?
-  list << counts[:size].to_s.rjust(length) if params[:c] || params.empty?
-  list << counts[:file_name] unless counts[:file_name].to_s.empty?
+  list = %i[line word size].map do |key|
+    counts[key].to_s.rjust(length) if params[key] || params.empty?
+  end.reject(&:nil?)
+  list << counts[:file_name] unless counts[:file_name].empty?
   list.join(' ')
 end
 
