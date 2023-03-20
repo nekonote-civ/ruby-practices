@@ -85,8 +85,8 @@ end
 def sum_counts(counts_array)
   total_counts = { line: 0, word: 0, size: 0, file_name: '合計' }
   counts_array.each do |counts|
-    counts.each do |key, value|
-      total_counts[key] += value if key != :file_name
+    counts.except(:file_name).each do |key, value|
+      total_counts[key] += value
     end
   end
   total_counts
