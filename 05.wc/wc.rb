@@ -34,11 +34,7 @@ def print_type_file(params)
 
   length = 0
   total_counts = sum_counts(counts_array)
-  unless single_option?(params) && single_file?
-    length = total_counts.map do |key, value|
-      key != :file_name ? value : 0
-    end.max.to_s.length
-  end
+  length = total_counts.values_at(:line, :word, :size).max.to_s.length unless single_option?(params) && single_file?
 
   counts_array.each do |counts|
     puts join_counts(counts, length, params)
